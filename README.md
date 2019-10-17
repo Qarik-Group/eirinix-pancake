@@ -1,4 +1,6 @@
-# Example Hello World EiriniX extension
+# Pancake EiriniX extension
+
+Flatten VCAP_SERVICES for all Eirini application.
 
 Eirini is an extension for Cloud Foundry that runs applications as statefulsets/pods within Kubernetes. This in turn allows operators to extend the behavior of their own Cloud Foundry platform with mutating webhooks - when a pod is created by Eirini, our bespoke webhook can be run to mutate the pod before it commences. 
 
@@ -28,10 +30,10 @@ We can see this Hello World EiriniX extension running without Cloud Foundry nor 
 kubectl apply -f config/deployment-ns-default.yaml
 ```
 
-To tail the logs of the `app=eirini-helloworld-extension` pod:
+To tail the logs of the `app=eirini-pancake-extension` pod:
 
 ```plain
-stern -l app=eirini-helloworld-extension
+stern -l app=eirini-pancake-extension
 ```
 
 ### Deploy Sample Pod
@@ -45,7 +47,7 @@ kubectl apply -f config/fakes/eirini_app.yaml
 The logs of the extension will show:
 
 ```plain
-eirini-helloworld-extension {"level":"info","ts":1571206202.8373592,"logger":"Hello world!","caller":"hello/helloworld.go:33","msg":"Hello from my Eirini extension! Eirini application POD: eirini-fake-app (default)"}
+eirini-pancake-extension {"level":"info","ts":1571206202.8373592,"logger":"Hello world!","caller":"hello/pancake.go:33","msg":"Hello from my Eirini extension! Eirini application POD: eirini-fake-app (default)"}
 ```
 
 If we look at the fake Eirini app pod, we see that it has been mutated to include an additional environment variable `STICKY_MESSAGE`:
@@ -65,8 +67,8 @@ In addition to deleting the fake Eirini app and the webhook/service, we also nee
 ```plain
 kubectl delete -f config/fakes/eirini_app.yaml
 kubectl delete -f config/deployment-ns-default.yaml
-kubectl delete mutatingwebhookconfigurations eirini-x-drnic-helloworld-mutating-hook-default
-kubectl delete secret eirini-x-drnic-helloworld-setupcertificate
+kubectl delete mutatingwebhookconfigurations eirini-x-drnic-pancake-mutating-hook-default
+kubectl delete secret eirini-x-drnic-pancake-setupcertificate
 ```
 
 ### Separate namespaces for Webhook and app Pods
@@ -83,12 +85,12 @@ In the `Deployment` spec for the webhook container we can see that we set `POD_N
 
 ```yaml
 containers:
-- image: drnic/eirinix-sample:latest
-  name: eirini-helloworld-extension
+- image: starkandwayne/eirinix-sample:latest
+  name: eirini-pancake-extension
   imagePullPolicy: IfNotPresent
   env:
   - name: WEBHOOK_SERVICE_NAME
-    value: eirini-helloworld-extension-service
+    value: eirini-pancake-extension-service
   - name: WEBHOOK_NAMESPACE
     value: scf
   - name: POD_NAMESPACE
@@ -110,8 +112,8 @@ To clean up our two-namespace demo:
 kubectl delete -f config/fakes/eirini_app.yaml -n scf-eirini
 kubectl delete -f config/deployment-ns-scf.yaml
 
-kubectl delete mutatingwebhookconfigurations eirini-x-drnic-helloworld-mutating-hook-scf-eirini
-kubectl delete secret eirini-x-drnic-helloworld-setupcertificate -n scf-eirini
+kubectl delete mutatingwebhookconfigurations eirini-x-drnic-pancake-mutating-hook-scf-eirini
+kubectl delete secret eirini-x-drnic-pancake-setupcertificate -n scf-eirini
 ```
 
 ## Developers
@@ -121,7 +123,7 @@ Our EiriniX webhook above is installed as a Kubernetes deployment, so we need to
 Instead we will use [Cloud Native Buildpacks](https://buildpacks.io), and the [`pack` CLI](https://buildpacks.io/docs/install-pack/):
 
 ```plain
-pack build drnic/eirinix-sample --builder cloudfoundry/cnb:bionic --publish
+pack build starkandwayne/eirinix-sample --builder cloudfoundry/cnb:bionic --publish
 ```
 
 One way to "update" the webhook is to delete and re-apply the service:

@@ -8,7 +8,7 @@ items:
     kind: ClusterRole
     metadata:
       creationTimestamp: null
-      name: "eirini-helloworld-extension"
+      name: "eirini-pancake-extension"
     rules:
     - apiGroups:
       - '*'
@@ -19,41 +19,41 @@ items:
   - kind: ClusterRoleBinding
     apiVersion: rbac.authorization.k8s.io/v1
     metadata:
-      name: "eirini-helloworld-extension"
+      name: "eirini-pancake-extension"
       namespace: "scf"
     roleRef:
       kind: ClusterRole
-      name: "eirini-helloworld-extension"
+      name: "eirini-pancake-extension"
       apiGroup: rbac.authorization.k8s.io
     subjects:
     - kind: ServiceAccount
-      name: "eirini-helloworld-extension"
+      name: "eirini-pancake-extension"
       namespace: "scf"
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: "eirini-helloworld-extension"
+  name: "eirini-pancake-extension"
   namespace: scf
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: eirini-helloworld-extension
+  name: eirini-pancake-extension
   namespace: scf
 subjects:
 - kind: ServiceAccount
-  name: eirini-helloworld-extension
+  name: eirini-pancake-extension
 roleRef:
   kind: Role
-  name: eirini-helloworld-extension
+  name: eirini-pancake-extension
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
-  name: eirini-helloworld-extension
+  name: eirini-pancake-extension
   namespace: scf
 rules:
 - apiGroups:
@@ -73,11 +73,11 @@ rules:
 apiVersion: v1
 kind: Service
 metadata:
-  name: eirini-helloworld-extension-service
+  name: eirini-pancake-extension-service
   namespace: scf
 spec:
   selector:
-    app: eirini-helloworld-extension
+    app: eirini-pancake-extension
   ports:
   - protocol: TCP
     port: 443
@@ -86,23 +86,23 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: eirini-helloworld-extension
+  name: eirini-pancake-extension
   namespace: scf
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: eirini-helloworld-extension
+        app: eirini-pancake-extension
     spec:
-      serviceAccountName: "eirini-helloworld-extension"
+      serviceAccountName: "eirini-pancake-extension"
       containers:
-      - image: drnic/eirinix-sample:latest
-        name: eirini-helloworld-extension
+      - image: starkandwayne/eirinix-pancake:latest
+        name: eirini-pancake-extension
         imagePullPolicy: IfNotPresent
         env:
         - name: WEBHOOK_SERVICE_NAME
-          value: eirini-helloworld-extension-service
+          value: eirini-pancake-extension-service
         - name: WEBHOOK_NAMESPACE
           value: scf
         - name: POD_NAMESPACE
