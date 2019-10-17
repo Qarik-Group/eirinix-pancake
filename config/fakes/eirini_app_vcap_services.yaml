@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: eirini-fake-app-empty-vcap-services
+  labels:
+    source_type: APP
+spec:
+  containers:
+  - name: eirini-fake-app
+    image: busybox:1.28.4
+    command:
+      - sleep
+      - "3600"
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    env:
+    - name: VCAP_SERVICES
+      value: |-
+        {"elephantsql":[{
+          "label": "elephantsql",
+          "plan": "turtle",
+          "name": "myapp-db",
+          "tags": [
+            "postgresql"
+          ],
+          "instance_name": "myapp-db",
+          "credentials": {
+            "uri": "postgres://efmpxxxa:wxVigKB_X8ACpkKjTHQ7WAqilCB9Rb9D@raja.db.elephantsql.com:5432/efmpxxxa",
+            "max_conns": "5"
+          }
+        }]}
+  restartPolicy: Always

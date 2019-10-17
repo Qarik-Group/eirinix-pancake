@@ -6,12 +6,19 @@ metadata:
     source_type: APP
 spec:
   containers:
-   - image: busybox:1.28.4
-     command:
+  - name: eirini-fake-app
+    image: busybox:1.28.4
+    command:
       - sleep
       - "3600"
-     name: eirini-fake-app
-     env:
-     - name: VCAP_SERVICES
-       value: "{}"
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    env:
+    - name: VCAP_SERVICES
+      value: "{}"
   restartPolicy: Always
