@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: eirini-fake-app-empty-vcap-services
+  labels:
+    source_type: APP
+spec:
+  containers:
+   - image: busybox:1.28.4
+     command:
+      - sleep
+      - "3600"
+     name: eirini-fake-app
+     env:
+     - name: VCAP_SERVICES
+       value: "{}"
+  restartPolicy: Always
