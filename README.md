@@ -126,16 +126,10 @@ Instead we will use [Cloud Native Buildpacks](https://buildpacks.io), and the [`
 pack build starkandwayne/eirinix-sample --builder cloudfoundry/cnb:bionic --publish
 ```
 
-One way to "update" the webhook is to delete and re-apply the service:
+One way to "update" the webhook is to delete and re-apply the webhook with this helper script:
 
 ```plain
-kubectl delete -f config/fakes/eirini_app.yaml
-kubectl delete -f config/deployment-ns-default.yaml
-kubectl delete mutatingwebhookconfigurations eirini-x-starkandwayne-pancake-mutating-hook-default
-kubectl delete secret eirini-x-starkandwayne-pancake-setupcertificate
-
-kubectl apply -f config/deployment-ns-default.yaml
-kubectl apply -f config/fakes/eirini_app.yaml
+./hacks/redeploy.sh
 ```
 
 Any previously generated `mutatingwebhookconfiguration` and `secret` will be kept (these must be explicitly deleted to be removed).
