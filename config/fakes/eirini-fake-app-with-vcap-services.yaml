@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: eirini-fake-app-empty-vcap-services
+  name: eirini-fake-app-with-vcap-services
   labels:
     source_type: APP
 spec:

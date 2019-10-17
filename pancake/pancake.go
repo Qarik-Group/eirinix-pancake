@@ -74,5 +74,6 @@ func (ext *Extension) Handle(ctx context.Context, eiriniManager eirinix.Manager,
 			})
 		}
 	}
+
 	return eiriniManager.PatchFromPod(req, podCopy)
 }
