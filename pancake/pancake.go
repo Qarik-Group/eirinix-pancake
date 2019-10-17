@@ -43,13 +43,13 @@ func (ext *Extension) Handle(ctx context.Context, eiriniManager eirinix.Manager,
 	}
 	if vcapServicesEnvVar == "" {
 		log.Infof("Pod does not contain $VCAP_SERVICES: %s (%s)", podCopy.Name, podCopy.Namespace)
-		return admission.Response{}
+		return eiriniManager.PatchFromPod(req, podCopy)
 	}
 
 	var rawServices map[string]interface{}
 	if err := json.Unmarshal([]byte(vcapServicesEnvVar), &rawServices); err != nil {
 		log.Error(err)
-		return admission.Response{}
+		return eiriniManager.PatchFromPod(req, podCopy)
 	}
 
 	vcapServices := make(cfenv.Services)
@@ -57,7 +57,7 @@ func (ext *Extension) Handle(ctx context.Context, eiriniManager eirinix.Manager,
 		var serviceInstances []cfenv.Service
 		if err := mapstructure.WeakDecode(v, &serviceInstances); err != nil {
 			log.Error(err)
-			return admission.Response{}
+			return eiriniManager.PatchFromPod(req, podCopy)
 		}
 		vcapServices[k] = serviceInstances
 	}
@@ -65,5 +65,5 @@ func (ext *Extension) Handle(ctx context.Context, eiriniManager eirinix.Manager,
 	flattenedEnvVars := flatten.VCAPServices(&vcapServices)
 
 	log.Infof("Found $VCAP_SERVICES in %s (%s): %#v", podCopy.Name, podCopy.Namespace, flattenedEnvVars)
-	return admission.Response{}
+	return eiriniManager.PatchFromPod(req, podCopy)
 }
