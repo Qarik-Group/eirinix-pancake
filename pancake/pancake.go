@@ -63,7 +63,16 @@ func (ext *Extension) Handle(ctx context.Context, eiriniManager eirinix.Manager,
 	}
 
 	flattenedEnvVars := flatten.VCAPServices(&vcapServices)
+	log.Infof("Found $VCAP_SERVICES in %s (%s)", podCopy.Name, podCopy.Namespace)
 
-	log.Infof("Found $VCAP_SERVICES in %s (%s): %#v", podCopy.Name, podCopy.Namespace, flattenedEnvVars)
+	for name, value := range flattenedEnvVars {
+		for i := range podCopy.Spec.Containers {
+			c := &podCopy.Spec.Containers[i]
+			c.Env = append(c.Env, corev1.EnvVar{
+				Name:  name,
+				Value: value,
+			})
+		}
+	}
 	return eiriniManager.PatchFromPod(req, podCopy)
 }
