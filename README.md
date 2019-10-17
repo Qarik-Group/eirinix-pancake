@@ -67,8 +67,8 @@ In addition to deleting the fake Eirini app and the webhook/service, we also nee
 ```plain
 kubectl delete -f config/fakes/eirini_app.yaml
 kubectl delete -f config/deployment-ns-default.yaml
-kubectl delete mutatingwebhookconfigurations eirini-x-drnic-pancake-mutating-hook-default
-kubectl delete secret eirini-x-drnic-pancake-setupcertificate
+kubectl delete mutatingwebhookconfigurations eirini-x-starkandwayne-pancake-mutating-hook-default
+kubectl delete secret eirini-x-starkandwayne-pancake-setupcertificate
 ```
 
 ### Separate namespaces for Webhook and app Pods
@@ -112,8 +112,8 @@ To clean up our two-namespace demo:
 kubectl delete -f config/fakes/eirini_app.yaml -n scf-eirini
 kubectl delete -f config/deployment-ns-scf.yaml
 
-kubectl delete mutatingwebhookconfigurations eirini-x-drnic-pancake-mutating-hook-scf-eirini
-kubectl delete secret eirini-x-drnic-pancake-setupcertificate -n scf-eirini
+kubectl delete mutatingwebhookconfigurations eirini-x-starkandwayne-pancake-mutating-hook-scf-eirini
+kubectl delete secret eirini-x-starkandwayne-pancake-setupcertificate -n scf-eirini
 ```
 
 ## Developers
@@ -129,8 +129,13 @@ pack build starkandwayne/eirinix-sample --builder cloudfoundry/cnb:bionic --publ
 One way to "update" the webhook is to delete and re-apply the service:
 
 ```plain
+kubectl delete -f config/fakes/eirini_app.yaml
 kubectl delete -f config/deployment-ns-default.yaml
+kubectl delete mutatingwebhookconfigurations eirini-x-starkandwayne-pancake-mutating-hook-default
+kubectl delete secret eirini-x-starkandwayne-pancake-setupcertificate
+
 kubectl apply -f config/deployment-ns-default.yaml
+kubectl apply -f config/fakes/eirini_app.yaml
 ```
 
 Any previously generated `mutatingwebhookconfiguration` and `secret` will be kept (these must be explicitly deleted to be removed).
