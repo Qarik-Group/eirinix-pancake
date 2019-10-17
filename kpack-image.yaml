@@ -1,0 +1,17 @@
+apiVersion: build.pivotal.io/v1alpha1
+kind: Image
+metadata:
+  name: eirinix-pancake
+spec:
+  builder:
+    name: cf-bionic-builder
+    kind: Builder
+  serviceAccount: service-account
+  cacheSize: "1.5Gi"
+  source:
+    git:
+      url: https://github.com/starkandwayne/eirinix-pancake.git
+      revision: master
+  tag: starkandwayne/eirinix-pancake:latest
+
+
