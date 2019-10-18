@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "eirinx-pancake.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+{{ include "eirinx-pancake.labels" . | indent 4 }}
+spec:
+  selector:
+    app: eirini-pancake-extension
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: 4545
+  selector:
+    app.kubernetes.io/name: {{ include "eirinx-pancake.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

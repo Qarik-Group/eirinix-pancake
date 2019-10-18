@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: null
+      name: "eirini-pancake-extension"
+    rules:
+    - apiGroups:
+      - '*'
+      resources:
+      - '*'
+      verbs:
+      - '*'
+  - kind: ClusterRoleBinding
+    apiVersion: rbac.authorization.k8s.io/v1
+    metadata:
+      name: "eirini-pancake-extension"
+      namespace: {{ .Release.Namespace | quote }}
+    roleRef:
+      kind: ClusterRole
+      name: "eirini-pancake-extension"
+      apiGroup: rbac.authorization.k8s.io
+    subjects:
+    - kind: ServiceAccount
+      name: "eirini-pancake-extension"
+      namespace: {{ .Release.Namespace | quote }}
