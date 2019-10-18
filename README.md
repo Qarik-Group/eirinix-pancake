@@ -1,14 +1,41 @@
 # Pancake EiriniX extension
 
-Flatten VCAP_SERVICES for all Eirini application.
+Flatten `$VCAP_SERVICES` for all Eirini applications into many individual environment variables.
 
-Eirini is an extension for Cloud Foundry that runs applications as statefulsets/pods within Kubernetes. This in turn allows operators to extend the behavior of their own Cloud Foundry platform with mutating webhooks - when a pod is created by Eirini, our bespoke webhook can be run to mutate the pod before it commences. 
+For example, the binding `credentials` below includes `uri` and `max_conns`. The former is converted into three variables for your application to choose from: `ELEPHANTSQL_URI` (based on the service name), `MYAPP_DB_URI` (based on the service instance name), and `POSTGRESQL_URI` (based on one of the tags):
+
+```plain
+$ kubectl describe pod myapp-dev-qwerty
+...
+    Environment:
+      VCAP_SERVICES:          {"elephantsql":[{
+                                "label": "elephantsql",
+                                "plan": "turtle",
+                                "name": "myapp-db",
+                                "tags": [
+                                  "postgresql"
+                                ],
+                                "instance_name": "myapp-db",
+                                "credentials": {
+                                  "uri": "postgres://efmpxxxa:wxVigKB_X8ACpkKjTHQ7WAqilCB9Rb9D@raja.db.elephantsql.com:5432/efmpxxxa",
+                                  "max_conns": "5"
+                                }
+                              }]}
+      ELEPHANTSQL_URI:        postgres://efmpxxxa:wxVigKB_X8ACpkKjTHQ7WAqilCB9Rb9D@raja.db.elephantsql.com:5432/efmpxxxa
+      MYAPP_DB_URI:           postgres://efmpxxxa:wxVigKB_X8ACpkKjTHQ7WAqilCB9Rb9D@raja.db.elephantsql.com:5432/efmpxxxa
+      POSTGRESQL_URI:         postgres://efmpxxxa:wxVigKB_X8ACpkKjTHQ7WAqilCB9Rb9D@raja.db.elephantsql.com:5432/efmpxxxa
+      ELEPHANTSQL_MAX_CONNS:  5
+      MYAPP_DB_MAX_CONNS:     5
+      POSTGRESQL_MAX_CONNS:   5
+```
+
+Eirini is an extension for Cloud Foundry that runs applications as statefulsets/pods within Kubernetes. This in turn allows operators to extend the behavior of their own Cloud Foundry platform with mutating webhooks - when a pod is created by Eirini, our bespoke webhook can be run to mutate the pod before it commences.
 
 One convenient starting point for writing mutating webhooks for Eirini-managed Pods is the SUSE [EiriniX](https://github.com/SUSE/eirinix) library (see [blog post](https://www.cloudfoundry.org/blog/introducing-eirinix-how-to-build-eirini-extensions/)).
 
-In this project we have a mutating webhook that adds an environment variable `STICKY_MESSAGE` to each Eirini pod.
+In this project we have a mutating webhook that reads the `$VCAP_SERVICES` environment variable and appends many additional environment variables to the pod's containers.
 
-Plus, we start by demonstrating how it works without you needing to run Cloud Foundry/Eirini.
+This README will demonstrate how it works without you needing to run Cloud Foundry/Eirini.
 
 This EiriniX extension should work with any Cloud Foundry/Eirini, including:
 
@@ -18,11 +45,9 @@ This EiriniX extension should work with any Cloud Foundry/Eirini, including:
 * Any open source Cloud Foundry with [Eirini Release included](https://documentation.suse.com/suse-cap/1/html/cap-guides/cha-cap-depl-eirini.html#sec-cap-eirini-enable).
 * Stark & Wayne's [Bootstrap Kubernetes Demos](https://documentation.suse.com/suse-cap/1/html/cap-guides/cha-cap-depl-eirini.html#sec-cap-eirini-enable) with `--scf` flag to run Cloud Foundry/Eirini on your Kubernetes cluster.
 
-This repo is a rewrite of [EiriniX Sample](https://github.com/SUSE/eirinix-sample/) for the benefit of my comprehension of what was going on. I think it is also a simpler implementation and simpler deployment story.
-
 ## Demonstration without Eirini on any Kubernetes
 
-We can see this Hello World EiriniX extension running without Cloud Foundry nor Eirini itself. It will deploy the webhook and sample application into the `default` namespace. We will clean up at the end.
+We can see this Pancake EiriniX extension running without Cloud Foundry nor Eirini itself. It will deploy the webhook and sample application into the `default` namespace. We will clean up at the end.
 
 ### Deploy Hello World Webhook
 
@@ -41,80 +66,28 @@ stern -l app=eirini-pancake-extension
 When we deploy an example Eirini-like pod (EiriniX webhooks match to any pod with a label `source_type: APP`):
 
 ```plain
-kubectl apply -f config/fakes/eirini_app.yaml
+kubectl apply -f config/fakes/eirini-fake-app-with-vcap-services.yaml
 ```
 
 The logs of the extension will show:
 
 ```plain
-eirini-pancake-extension {"level":"info","ts":1571206202.8373592,"logger":"Hello world!","caller":"hello/pancake.go:33","msg":"Hello from my Eirini extension! Eirini application POD: eirini-fake-app (default)"}
+... {"level":"info","logger":"cf-pancake","caller":"pancake/pancake.go:66","msg":"Found $VCAP_SERVICES in eirini-fake-app-with-vcap-services (default)"}
 ```
 
-If we look at the fake Eirini app pod, we see that it has been mutated to include an additional environment variable `STICKY_MESSAGE`:
-
-```plain
-$ kubectl describe pod eirini-fake-app
-...
-    Environment:
-      STICKY_MESSAGE:  Eirinix is awesome!
-...
-```
+See the top of the README for the results of this `config/fakes/eirini-fake-app-with-vcap-services.yaml` fake Eirini pod.
 
 ### Tear it down
 
 In addition to deleting the fake Eirini app and the webhook/service, we also need to delete a generated `mutatingwebhookconfiguration` and a `secret`:
 
 ```plain
-kubectl delete -f config/fakes/eirini_app.yaml
-kubectl delete -f config/deployment-ns-default.yaml
-kubectl delete mutatingwebhookconfigurations eirini-x-starkandwayne-pancake-mutating-hook-default
-kubectl delete secret eirini-x-starkandwayne-pancake-setupcertificate
+./hack/delete.sh
 ```
 
 ### Separate namespaces for Webhook and app Pods
 
-It might be common to see the Cloud Foundry/Eirini components running in one namespace, say `scf`, and the Eirini-managed application Pods in another `scf-eirini`.
-
-We can deploy our webhook into `scf`, and watch/mutate pods in `scf-eirini`:
-
-```plain
-kubectl apply -f config/deployment-ns-scf.yaml
-```
-
-In the `Deployment` spec for the webhook container we can see that we set `POD_NAMESPACE` to `scf-eirini`, and `WEBHOOK_NAMESPACE` to `scf`:
-
-```yaml
-containers:
-- image: starkandwayne/eirinix-sample:latest
-  name: eirini-pancake-extension
-  imagePullPolicy: IfNotPresent
-  env:
-  - name: WEBHOOK_SERVICE_NAME
-    value: eirini-pancake-extension-service
-  - name: WEBHOOK_NAMESPACE
-    value: scf
-  - name: POD_NAMESPACE
-    value: scf-eirini
-```
-
-To deploy our fake app into `scf-eirini`:
-
-```plain
-kubectl apply -f config/fakes/eirini_app.yaml -n scf-eirini
-```
-
-As above, the resulting Pod will be mutated to include a `STICKY_MESSAGE` environment variable.
-
-To clean up our two-namespace demo:
-
-```plain
-```plain
-kubectl delete -f config/fakes/eirini_app.yaml -n scf-eirini
-kubectl delete -f config/deployment-ns-scf.yaml
-
-kubectl delete mutatingwebhookconfigurations eirini-x-starkandwayne-pancake-mutating-hook-scf-eirini
-kubectl delete secret eirini-x-starkandwayne-pancake-setupcertificate -n scf-eirini
-```
+TODO
 
 ## Developers
 
