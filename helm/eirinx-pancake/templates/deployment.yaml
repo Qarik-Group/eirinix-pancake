@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "eirinx-pancake.fullname" . }}
+  name: {{ include "fullname" . }}
   labels:
-{{ include "eirinx-pancake.labels" . | indent 4 }}
+{{ include "labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "eirinx-pancake.name" . }}
+      app.kubernetes.io/name: {{ include "name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "eirinx-pancake.name" . }}
+        app.kubernetes.io/name: {{ include "name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
     {{- with .Values.imagePullSecrets }}
@@ -28,7 +28,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
         - name: WEBHOOK_SERVICE_NAME
-          value: {{ include "eirinx-pancake.fullname" . }}
+          value: {{ include "fullname" . }}
         - name: WEBHOOK_NAMESPACE
           value: {{ .Release.Namespace | quote }}
         - name: POD_NAMESPACE
