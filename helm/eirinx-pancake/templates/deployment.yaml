@@ -28,7 +28,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
         - name: WEBHOOK_SERVICE_NAME
-          value: eirini-pancake-extension-service
+          value: {{ include "eirinx-pancake.fullname" . }}
         - name: WEBHOOK_NAMESPACE
           value: {{ .Release.Namespace | quote }}
         - name: POD_NAMESPACE
