@@ -108,3 +108,35 @@ One way to "update" the webhook is to delete and re-apply the webhook with this 
 Any previously generated `mutatingwebhookconfiguration` and `secret` will be kept (these must be explicitly deleted to be removed).
 
 See [Tear it down](#tear-it-down) for cleanup of webhook, secret, and `mutatingwebhookconfiguration`.
+
+### Build Docker Image with kpack
+
+In liue of running `pack build --publish` locally, you can use [kpack](https://github.com/pivotal/kpack) to automatically build OCIs from your fork/branch and publish to your own Docker Registry.
+
+A helper script is provided to create two kpack resources:
+
+* `Builder` describing the use of `cloudfoundry/cnb:bionic` builder, and
+* `Image` describing your remote Git fork and branch, and your image registry details
+
+The only requirement is a `ServiceAccount` containing authentication secrets for your Docker Registry account.
+
+```plain
+export SERVICE_ACCOUNT=service-account
+cat ./hacks/kpack-builder-image.sh
+```
+
+A full example for forking, branch, and building these kpack resources:
+
+```plain
+hub fork
+git checkout -b my-new-feature
+
+export SERVICE_ACCOUNT=service-account
+cat ./hacks/kpack-builder-image.sh
+```
+
+Confirm that everything looks good, and then install into Kubernetes:
+
+```plain
+cat ./hacks/kpack-builder-image.sh | kubectl apply -f -
+```

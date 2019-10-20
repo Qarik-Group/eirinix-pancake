@@ -6,6 +6,10 @@ set -eu
 #   export SERVICE_ACCOUNT=service-account
 #   ./hacks/kpack-branch.sh | kubectl apply -f -
 #
+# To enable cache:
+#   export KPACK_CACHE_SIZE=1.5Gi
+#   ./hacks/kpack-branch.sh | kubectl apply -f -
+#
 # To watch Cloud Native Buildpack logs in progress:
 #   logs -image eirinix-pancake
 
